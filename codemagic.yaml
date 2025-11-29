@@ -22,13 +22,13 @@ workflows:
           cd ios
           rm -rf Pods
           rm -f Podfile.lock
-          # Podfile'i zorla 15.0 yap (Garanti olsun)
+          # Podfile'i zorla 15.0 yap (Firestore icin)
           sed -i '' "s/platform :ios, .*/platform :ios, '15.0'/" Podfile
           pod install --repo-update
       
       - name: Build .app for Simulator
         script: |
-          cd ..
+          # BURADAKİ "cd .." KOMUTUNU SİLDİK. ZATEN ANA KLASÖRDEYİZ.
           flutter build ios --debug --simulator --no-codesign
     artifacts:
       - build/ios/iphonesimulator/Runner.app
