@@ -2,21 +2,30 @@ workflows:
   ios-simulator-build:
     name: iOS Simulator Build
     max_build_duration: 60
-    instance_type: mac_mini_m1
+    instance_type: mac_mini_m2
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Flutter paketlerini getir
+      - name: Flutter Clean & Get
         script: |
-          flutter packages pub get
-      - name: Pods yükle
+          flutter clean
+          flutter pub get
+      - name: Fix Missing Config (Windows User Fix)
         script: |
-          find . -name "Podfile" -exec dir "{}" \;
-          cd ios && pod install
-      - name: Simülatör için derle (İmzasız)
+          # Bu komut o eksik dosyayi zorla olusturur
+          flutter build ios --config-only --no-codesign
+      - name: Install Pods
         script: |
+          cd ios
+          # Eski kalintilari temizle ve taze kurulum yap
+          rm -rf Pods
+          rm -f Podfile.lock
+          pod install --repo-update
+      - name: Build Simulator App
+        script: |
+          cd ..
           flutter build ios --debug --simulator
     artifacts:
       - build/ios/iphonesimulator/Runner.app
