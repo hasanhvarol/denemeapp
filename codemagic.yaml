@@ -15,16 +15,15 @@ workflows:
       
       - name: Force Generate iOS Config (Windows Fix)
         script: |
-          # Windows kullanicilari icin hayati komut: Eksik dosyalari yaratir
           flutter build ios --config-only --no-codesign --debug
       
       - name: Install & Update CocoaPods
         script: |
           cd ios
-          # Eski pod kalintilarini temizle
           rm -rf Pods
           rm -f Podfile.lock
-          # Repolari guncelle ve kur (Bu islem biraz surebilir ama garantidir)
+          # Podfile'i zorla 15.0 yap (Garanti olsun)
+          sed -i '' "s/platform :ios, .*/platform :ios, '15.0'/" Podfile
           pod install --repo-update
       
       - name: Build .app for Simulator
