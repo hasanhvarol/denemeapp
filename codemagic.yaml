@@ -8,24 +8,28 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Flutter Clean & Get
+      - name: Flutter Clean & Get Packages
         script: |
           flutter clean
           flutter pub get
-      - name: Fix Missing Config (Windows User Fix)
+      
+      - name: Force Generate iOS Config (Windows Fix)
         script: |
-          # Bu komut o eksik dosyayi zorla olusturur
-          flutter build ios --config-only --no-codesign
-      - name: Install Pods
+          # Windows kullanicilari icin hayati komut: Eksik dosyalari yaratir
+          flutter build ios --config-only --no-codesign --debug
+      
+      - name: Install & Update CocoaPods
         script: |
           cd ios
-          # Eski kalintilari temizle ve taze kurulum yap
+          # Eski pod kalintilarini temizle
           rm -rf Pods
           rm -f Podfile.lock
+          # Repolari guncelle ve kur (Bu islem biraz surebilir ama garantidir)
           pod install --repo-update
-      - name: Build Simulator App
+      
+      - name: Build .app for Simulator
         script: |
           cd ..
-          flutter build ios --debug --simulator
+          flutter build ios --debug --simulator --no-codesign
     artifacts:
       - build/ios/iphonesimulator/Runner.app
