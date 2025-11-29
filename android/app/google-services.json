@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "749073573222",
+    "project_id": "abonelik-avcisi-e793e",
+    "storage_bucket": "abonelik-avcisi-e793e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749073573222:android:bbe083046698a5df5354a7",
+        "android_client_info": {
+          "package_name": "com.hhvdev.akilliabonelik"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJBdOd4Nz3SOBWlHE-pfeFHE1LfGlBlBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
