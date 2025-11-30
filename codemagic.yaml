@@ -28,8 +28,11 @@ workflows:
       
       - name: Build .app for Simulator
         script: |
-          # BURADAKİ "cd .." KOMUTUNU SİLDİK. ZATEN ANA KLASÖRDEYİZ.
+          # SİGORTA BURADA: Firebase dosyasini build klasorune elle kopyaliyoruz
+          mkdir -p build/ios/iphonesimulator/Runner.app
+          cp ios/Runner/GoogleService-Info.plist build/ios/iphonesimulator/Runner.app/GoogleService-Info.plist
+          
+          # Derleme basliyor
           flutter build ios --debug --simulator --no-codesign
     artifacts:
       - build/ios/iphonesimulator/Runner.app
-      
