@@ -13,7 +13,13 @@ workflows:
           flutter clean
           flutter pub get
       
-      - name: Force Generate iOS Config (Windows Fix)
+      - name: Force Update Deployment Target (Windows Fix)
+        script: |
+          cd ios
+          find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9]*\.[0-9]*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} +
+          cd ..
+
+      - name: Force Generate iOS Config
         script: |
           flutter build ios --config-only --no-codesign --debug
       
@@ -22,17 +28,12 @@ workflows:
           cd ios
           rm -rf Pods
           rm -f Podfile.lock
-          # Podfile'i zorla 15.0 yap (Firestore icin)
-          sed -i '' "s/platform :ios, .*/platform :ios, '15.0'/" Podfile
           pod install --repo-update
       
       - name: Build .app for Simulator
         script: |
-          # SİGORTA BURADA: Firebase dosyasini build klasorune elle kopyaliyoruz
           mkdir -p build/ios/iphonesimulator/Runner.app
           cp ios/Runner/GoogleService-Info.plist build/ios/iphonesimulator/Runner.app/GoogleService-Info.plist
-          
-          # Derleme basliyor
           flutter build ios --debug --simulator --no-codesign
     artifacts:
       - build/ios/iphonesimulator/Runner.app
