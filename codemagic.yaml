@@ -32,3 +32,4 @@ workflows:
           flutter build ios --debug --simulator --no-codesign
     artifacts:
       - build/ios/iphonesimulator/Runner.app
+      

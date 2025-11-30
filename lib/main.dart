@@ -25,18 +25,49 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Firebase Başlatma
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Arka Plan Mesajlarını Dinle
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  // AdMob Başlatma
   await MobileAds.instance.initialize();
+
+  // Saat Dilimlerini Başlatma
   tz.initializeTimeZones();
 
+  // --- BİLDİRİM AYARLARI (CRASH FIX BURADA) ---
+
+  // 1. Android Ayarı
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
-  const InitializationSettings initializationSettings = InitializationSettings(
+
+  // 2. iOS Ayarı (BU EKSİKTİ, EKLENDİ)
+  // iOS 10+ için izinleri buradan istiyoruz
+  final DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+
+  // 3. Genel Başlatma Ayarı
+  final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
+    iOS:
+        initializationSettingsIOS, // <-- ARTIK iOS AYARI VAR, BEYAZ EKRAN VERMEZ
   );
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // 4. Plugin Başlatma
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      // Bildirime tıklanınca yapılacak işlemler (Gerekirse burası doldurulur)
+      debugPrint('Bildirime tıklandı: ${response.payload}');
+    },
+  );
 
   runApp(const MyApp());
 }
@@ -141,7 +172,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _checkTutorialStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    bool seen = prefs.getBool('has_seen_tutorial_v4') ?? false; // v4 yaptık
+    bool seen = prefs.getBool('has_seen_tutorial_v4') ?? false;
 
     setState(() {
       _isTutorialCompleted = seen;
@@ -254,9 +285,7 @@ class _MainScreenState extends State<MainScreen> {
                         style: TextStyle(color: Colors.grey),
                       ),
                     ),
-
                   const SizedBox(width: 8),
-
                   ElevatedButton(
                     onPressed: onNext,
                     style: ElevatedButton.styleFrom(
@@ -328,7 +357,6 @@ class _MainScreenState extends State<MainScreen> {
           NavigationDestination(
             icon: Showcase.withWidget(
               key: _three,
-              // ERROR FIX: height ve width parametrelerini kaldırdık
               targetShapeBorder: const CircleBorder(),
               container: _customTooltip(
                 title: 'Harcama Analizi',
@@ -413,12 +441,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _requestPermissions() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-    await messaging.requestPermission();
+    // iOS için FCM izni
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    // Android için Yerel Bildirim İzni
     final androidImplementation = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    await androidImplementation?.requestNotificationsPermission();
+
+    if (androidImplementation != null) {
+      await androidImplementation.requestNotificationsPermission();
+    }
+
+    // iOS için Yerel Bildirim İzni (GEREKSİZ OLABİLİR AMA GARANTİ OLSUN)
+    final iosImplementation = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+
+    if (iosImplementation != null) {
+      await iosImplementation.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 
   void _startRealtimeSync() {
@@ -497,6 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await flutterLocalNotificationsPlugin.cancel(idBase);
     await flutterLocalNotificationsPlugin.cancel(idBase + 1);
 
+    // Android Detayları
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'payment_channel',
@@ -504,8 +553,13 @@ class _HomeScreenState extends State<HomeScreen> {
           importance: Importance.max,
           priority: Priority.high,
         );
+
+    // iOS Detayları (BASİT BİR ŞEKİLDE EKLENDİ)
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
+      iOS: iosDetails, // <-- iOS İÇİN BUNU EKLEMEK ŞART
     );
 
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
@@ -820,6 +874,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 double.tryParse(priceController.text) ?? 0.0;
                             final day = int.tryParse(dayController.text) ?? 1;
                             if (name.isEmpty || price <= 0) return;
+
                             final newSub = Subscription(
                               id: existingSub?.id ?? DateTime.now().toString(),
                               name: name,
@@ -827,6 +882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               renewalDay: day,
                               logoUrl: selectedLogo,
                             );
+
                             setState(() {
                               if (existingSub != null) {
                                 final index = _subs.indexWhere(
@@ -838,6 +894,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               }
                               _saveData();
                             });
+
                             _scheduleNotification(newSub);
                             Navigator.pop(context);
                           },
@@ -883,7 +940,6 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // --- SHOWCASE 1: ÖZET KART (ERROR FIX: width/height kalktı) ---
             Showcase.withWidget(
               key: _one,
               targetShapeBorder: const RoundedRectangleBorder(
@@ -968,7 +1024,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 symbol: '₺',
                               ).format(total),
                               style: const TextStyle(
-                                color: Colors.white,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
@@ -982,9 +1037,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 25),
-
             Expanded(
               child: _subs.isEmpty
                   ? Center(
@@ -1122,11 +1175,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
-      // --- SHOWCASE 2: EKLE BUTONU ---
       floatingActionButton: Showcase.withWidget(
         key: _two,
-        // ERROR FIX: width/height kalktı
         targetShapeBorder: const CircleBorder(),
         container: widget.tooltipBuilder != null
             ? widget.tooltipBuilder!(
