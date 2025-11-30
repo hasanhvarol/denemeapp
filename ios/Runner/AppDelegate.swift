@@ -1,6 +1,5 @@
 import UIKit
 import Flutter
-import Firebase
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -9,14 +8,13 @@ import Firebase
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     
-    // Sadece Firebase'i garantili başlatıyoruz
-    if FirebaseApp.app() == nil {
-        FirebaseApp.configure()
-    }
+    // Firebase başlatma kodunu BURADAN SİLDİK. 
+    // Artık main.dart içindeki Flutter kodu bu işi yapacak.
+    // Bu sayede "Dosya bulunamadı" hatası almayacağız.
     
     GeneratedPluginRegistrant.register(with: self)
     
-    // Bildirim delegesini Flutter'a bırakıyoruz (Plugin kendi hallediyor)
+    // Bildirim izinleri için gerekli delege ayarı
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     }

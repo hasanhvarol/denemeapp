@@ -8,36 +8,23 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Flutter Clean & Get Packages
+      - name: Flutter Clean & Get
         script: |
           flutter clean
           flutter pub get
       
-      - name: Force Generate iOS Config
+      - name: Force iOS Config
         script: |
           flutter build ios --config-only --no-codesign --debug
       
-      - name: Copy Firebase Config (ATOM BOMB) 💣
-        script: |
-          # Dosyayi hem köke hem de Runner klasörüne atıyoruz, garanti olsun
-          # Eger klasor yoksa olustur
-          mkdir -p ios/Runner
-          # Dosyayi kopyala
-          cp ios/Runner/GoogleService-Info.plist ios/GoogleService-Info.plist
-          
-          # Xcode projesine dosyayi manuel eklemek yerine, dosyanin varligini dogruluyoruz.
-          # Firebase SDK, dosya Runner klasorundeyse onu bulur.
-          echo "Dosya kontrol ediliyor..."
-          ls -l ios/Runner/GoogleService-Info.plist
-
-      - name: Install & Update CocoaPods
+      - name: Install Pods (Final)
         script: |
           cd ios
           rm -rf Pods
           rm -f Podfile.lock
           pod install --repo-update
       
-      - name: Build .app for Simulator
+      - name: Build Simulator
         script: |
           flutter build ios --debug --simulator --no-codesign
     artifacts:
