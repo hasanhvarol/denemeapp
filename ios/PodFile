@@ -1,7 +1,7 @@
-# En garantili platform sürümü
+# EN TEPEYE BUNU YAZIYORUZ
 platform :ios, '15.0'
 
-# CocoaPods analytics kapat (Hızlandırır)
+# Hızlandırma ayarı
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -36,8 +36,14 @@ target 'Runner' do
   end
 end
 
+# --- İŞTE SİHİRLİ KISIM BURASI (ZORLA 15.0 YAPMA) ---
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    
+    # HER BİR PAKETİ ZORLA iOS 15.0'A GÜNCELLİYORUZ
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
   end
 end
