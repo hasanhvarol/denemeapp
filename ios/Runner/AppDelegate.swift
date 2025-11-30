@@ -1,7 +1,6 @@
 import UIKit
 import Flutter
 import Firebase
-import flutter_local_notifications // 1. Local Notifications paketini import ettik
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -10,15 +9,18 @@ import flutter_local_notifications // 1. Local Notifications paketini import ett
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     
-    // 2. Firebase'i başlatma komutu
+    // Sadece Firebase'i garantili başlatıyoruz
     if FirebaseApp.app() == nil {
         FirebaseApp.configure()
     }
     
-    // 3. Local Notifications için gerekli setup. Bu satır eklenmeli.
-    FlutterLocalNotificationsPlugin.set       
-      
     GeneratedPluginRegistrant.register(with: self)
+    
+    // Bildirim delegesini Flutter'a bırakıyoruz (Plugin kendi hallediyor)
+    if #available(iOS 10.0, *) {
+      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+    }
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
