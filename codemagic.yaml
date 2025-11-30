@@ -13,16 +13,23 @@ workflows:
           flutter clean
           flutter pub get
       
-      - name: Force Update Deployment Target
-        script: |
-          cd ios
-          find . -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9]*\.[0-9]*;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} +
-          cd ..
-
       - name: Force Generate iOS Config
         script: |
           flutter build ios --config-only --no-codesign --debug
       
+      - name: Copy Firebase Config (ATOM BOMB) 💣
+        script: |
+          # Dosyayi hem köke hem de Runner klasörüne atıyoruz, garanti olsun
+          # Eger klasor yoksa olustur
+          mkdir -p ios/Runner
+          # Dosyayi kopyala
+          cp ios/Runner/GoogleService-Info.plist ios/GoogleService-Info.plist
+          
+          # Xcode projesine dosyayi manuel eklemek yerine, dosyanin varligini dogruluyoruz.
+          # Firebase SDK, dosya Runner klasorundeyse onu bulur.
+          echo "Dosya kontrol ediliyor..."
+          ls -l ios/Runner/GoogleService-Info.plist
+
       - name: Install & Update CocoaPods
         script: |
           cd ios
@@ -30,15 +37,6 @@ workflows:
           rm -f Podfile.lock
           pod install --repo-update
       
-      - name: Copy Firebase Config (ATOM BOMB) 💣
-        script: |
-          # Dosyayi hem köke hem de Runner klasörüne atıyoruz, garanti olsun
-          cp ios/Runner/GoogleService-Info.plist ios/GoogleService-Info.plist
-          
-          # Xcode'un içine gömmek için özel hamle
-          echo "GoogleService-Info.plist dosyasini kontrol ediyoruz..."
-          ls -l ios/Runner/GoogleService-Info.plist
-
       - name: Build .app for Simulator
         script: |
           flutter build ios --debug --simulator --no-codesign
